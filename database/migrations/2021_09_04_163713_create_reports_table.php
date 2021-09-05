@@ -16,7 +16,6 @@ class CreateReportsTable extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->enum('type_manner', ['buen trato', 'trato normal', 'mal trato']);
             $table->enum('type_report', ['opinión', 'denuncia']);
             $table->string('description');
             $table->integer('assessment')->default(1);
