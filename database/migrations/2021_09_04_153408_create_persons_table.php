@@ -18,6 +18,7 @@ class CreatePersonsTable extends Migration
             $table->string('name');
             $table->string('surname');
             $table->date('dateBirth');
+            $table->string('photo_profile');
             $table->timestamps();
         });
     }
