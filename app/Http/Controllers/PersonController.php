@@ -3,112 +3,90 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Person;
 use App\Models\User;
 use Exception;
 
 class PersonController extends ApiController
 {
-    public function getAllUsers()
+    public function getAllPersons()
     {
-        $Users = User::where('activo', 1)
-            ->join('person', 'users.id', '=', 'person.id')
+        $Users = User::where('active', 1)
+            ->join('persons', 'users.id', '=', 'persons.id')
             ->get();
         return $Users;
     }
 
-    public function createUser(Request $request)
+    public function createPerson(Request $request)
     {
         try {
-            $request->validate([
-                'username' => 'required',
-                'email' => 'required',
-                'password' => 'required',
-                'name' => 'requiered',
-                'surname' => 'requiered',
-                'dateBirth' => 'requiered',
-                'photo' => 'file'
-            ]);
-
-            /*if($req->file()) {
-                $fileName = time().'_'.$req->file->getClientOriginalName();
-                $filePath = $req->file('file')->storeAs('uploads', $fileName, 'public');
-    
-                $fileModel->name = time().'_'.$req->file->getClientOriginalName();
-                $fileModel->file_path = '/storage/' . $filePath;
-                $fileModel->save();
-    
-                return back()
-                ->with('success','File has been uploaded.')
-                ->with('file', $fileName);
-            }*/
+            $photo_profile = time() . "." . $request->file('photo')->extension();
+            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
+            $path = "public/images/$photo_profile";
 
             $User = User::create(
                 [
                     'username' => $request->input('username'),
                     'email' => $request->input('email'),
-                    'password' => $request->input('password')
+                    'password' => Hash::make($request->input('password'))
                 ]
             );
+
             $Person = Person::create(
                 [
+                    'id' => $User->id,
                     'name' => $request->input('name'),
                     'surname' => $request->input('surname'),
                     'date_birth' => $request->input('dateBirth'),
-                    'photo_profile' => $request->file('photo')->getClientOriginalName()
+                    'photo_profile' => $path
                 ]
             );
-            return $Person;
+
+            return $this->sendResponse([$Person, $User], 201);
         } catch (Exception $error) {
             return $this->sendError($error, 'error to create user', 405);
         }
     }
 
-    public function getUser($id)
+    public function getPerson($id)
     {
-        $User = User::where('id', $id)
-            ->join('person', 'users.id', '=', 'person.id')
+        $User = User::where([['persons.id', $id], ['active', 1]])
+            ->join('persons', 'users.id', '=', 'persons.id')
             ->get();
         return $User;
     }
 
-    public function updateUser(Request $request, $id)
+    public function updatePerson(Request $request, $id)
     {
         try {
-            $request->validate([
-                'username' => 'required',
-                'email' => 'required',
-                'password' => 'required',
-                'name' => 'requiered',
-                'surname' => 'requiered',
-                'dateBirth' => 'requiered',
-                'photo' => 'file'
-            ]);
+            $photo_profile = time() . "." . $request->file('photo')->extension();
+            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
+            $path = "public/images/$photo_profile";
 
-            $User = User::where('id', $id)
+            User::where('id', $id)
                 ->update(
                     [
                         'username' => $request->input('username'),
-                        'email' => $request->input('email'),
-                        'password' => $request->input('password')
+                        'email' => $request->input('email')
                     ]
                 );
-            $Person = Person::where('id', $id)
+            Person::where('id', $id)
                 ->update(
                     [
                         'name' => $request->input('name'),
                         'surname' => $request->input('surname'),
                         'date_birth' => $request->input('dateBirth'),
-                        'photo_profile' => $request->input('photo')
+                        'photo_profile' => $path
                     ]
                 );
-            return $User;
+            return $this->sendResponse([User::where('id', $id)->get(), Person::where('id', $id)->get()], 200);
         } catch (Exception $error) {
             return $this->sendError($error, 'error to update user', 405);
         }
     }
 
-    public function deleteUser($id)
+    public function deletePerson($id)
     {
         try {
             $User = User::where('id', $id)

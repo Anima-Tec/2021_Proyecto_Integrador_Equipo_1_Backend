@@ -14,6 +14,6 @@ class Person extends Model
         'name',
         'surname',
         'date_birth',
-        'photo'
+        'photo_profile'
     ];
 }
