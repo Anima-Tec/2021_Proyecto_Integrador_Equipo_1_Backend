@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/get/persons', [PersonController::class, 'getAllPersons']);

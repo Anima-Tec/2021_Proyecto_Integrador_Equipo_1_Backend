@@ -21,29 +21,34 @@ class PersonController extends ApiController
     public function createPerson(Request $request)
     {
         try {
-            $photo_profile = time() . "." . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-            $path = "public/images/$photo_profile";
+            $exist = Person::where('username', $request->input('username'));
 
-            $User = User::create(
-                [
-                    'username' => $request->input('username'),
-                    'email' => $request->input('email'),
-                    'password' => Hash::make($request->input('password'))
-                ]
-            );
+            if (!$exist) {
+                $photo_profile = time() . "." . $request->file('photo')->extension();
+                $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
+                $path = "public/images/$photo_profile";
 
-            $Person = Person::create(
-                [
-                    'id' => $User->id,
-                    'name' => $request->input('name'),
-                    'surname' => $request->input('surname'),
-                    'date_birth' => $request->input('dateBirth'),
-                    'photo_profile' => $path
-                ]
-            );
+                $User = User::create(
+                    [
+                        'username' => $request->input('username'),
+                        'email' => $request->input('email'),
+                        'password' => Hash::make($request->input('password'))
+                    ]
+                );
 
-            return $this->sendResponse([$Person, $User], 201);
+                $Person = Person::create(
+                    [
+                        'id' => $User->id,
+                        'name' => $request->input('name'),
+                        'surname' => $request->input('surname'),
+                        'date_birth' => $request->input('dateBirth'),
+                        'photo_profile' => $path
+                    ]
+                );
+
+                return $this->sendResponse([$Person, $User], 201);
+            }
+            return $this->sendError($exist, 'person alredy exist', 405);
         } catch (Exception $error) {
             return $this->sendError($error, 'error to create user', 405);
         }
@@ -51,10 +56,17 @@ class PersonController extends ApiController
 
     public function getPerson($id)
     {
-        $User = User::where([['persons.id', $id], ['active', 1]])
-            ->join('persons', 'users.id', '=', 'persons.id')
-            ->get();
-        return $User;
+
+        $exist = User::find($id);
+
+        if (!$exist) {
+            $User = User::where([['persons.id', $id], ['active', 1]])
+                ->join('persons', 'users.id', '=', 'persons.id')
+                ->get();
+
+            return $this->sendResponse($User, 200);
+        }
+        return $this->sendError($exist, 'user alredy exist', 405);
     }
 
     public function updatePerson(Request $request, $id)
