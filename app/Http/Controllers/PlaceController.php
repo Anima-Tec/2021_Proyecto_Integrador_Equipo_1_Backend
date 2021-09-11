@@ -27,13 +27,21 @@ class PlaceController extends ApiController
     public function createPlace(Request $request)
     {
         try {
-            Place::create(
-                [
-                    'name' => $request->input('name'),
-                    'address' => $request->input('address')
-                ]
-            );
-            return $this->sendResponse(Place::where('address', $request->input('address'))->get(), 201);
+            $request->validate([
+                'name' => 'required',
+                'address' => 'required',
+            ]);
+
+            if (Place::where('address', $request->input('address'))) {
+                $Place = Place::create(
+                    [
+                        'name' => $request->input('name'),
+                        'address' => $request->input('address')
+                    ]
+                );
+
+                return $this->sendResponse($Place, 201);
+            }
         } catch (Exception $error) {
             return $this->sendError($error, 405);
         }
@@ -42,6 +50,11 @@ class PlaceController extends ApiController
     public function updatePlace(Request $request, $id)
     {
         try {
+            $request->validate([
+                'name' => 'required',
+                'address' => 'required',
+            ]);
+
             Place::where('id', $id)
                 ->update(
                     [

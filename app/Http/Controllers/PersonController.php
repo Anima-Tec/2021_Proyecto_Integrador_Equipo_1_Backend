@@ -21,6 +21,15 @@ class PersonController extends ApiController
     public function createPerson(Request $request)
     {
         try {
+            $request->validate([
+                'username' => 'required',
+                'email' => 'required',
+                'password' => 'required',
+                'name' => 'required',
+                'surname' => 'required',
+                'dateBirth' => 'required',
+            ]);
+
             $exist = Person::where('username', $request->input('username'));
 
             if (!$exist) {
@@ -28,25 +37,25 @@ class PersonController extends ApiController
                 $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
                 $path = "public/images/$photo_profile";
 
-                $User = User::create(
-                    [
-                        'username' => $request->input('username'),
-                        'email' => $request->input('email'),
-                        'password' => Hash::make($request->input('password'))
-                    ]
-                );
+                $User = User::create([
+                    'username' => $request->input('username'),
+                    'email' => $request->input('email'),
+                    'password' => Hash::make($request->input('password'))
+                ]);
 
-                $Person = Person::create(
-                    [
-                        'id' => $User->id,
-                        'name' => $request->input('name'),
-                        'surname' => $request->input('surname'),
-                        'date_birth' => $request->input('dateBirth'),
-                        'photo_profile' => $path
-                    ]
-                );
+                Person::create([
+                    'id' => $User->id,
+                    'name' => $request->input('name'),
+                    'surname' => $request->input('surname'),
+                    'date_birth' => $request->input('dateBirth'),
+                    'photo_profile' => $path
+                ]);
 
-                return $this->sendResponse([$Person, $User], 201);
+                $NewUser = User::find($User->id)
+                    ->join('persons', 'users.id', '=', 'persons.id')
+                    ->get();
+
+                return $this->sendResponse($NewUser, 201);
             }
             return $this->sendError($exist, 'person alredy exist', 405);
         } catch (Exception $error) {
@@ -56,7 +65,6 @@ class PersonController extends ApiController
 
     public function getPerson($id)
     {
-
         $exist = User::find($id);
 
         if (!$exist) {
@@ -66,33 +74,43 @@ class PersonController extends ApiController
 
             return $this->sendResponse($User, 200);
         }
-        return $this->sendError($exist, 'user alredy exist', 405);
+        return $this->sendError($exist, 'user not found', 405);
     }
 
     public function updatePerson(Request $request, $id)
     {
         try {
+            $request->validate([
+                'username' => 'required',
+                'email' => 'required',
+                'password' => 'required',
+                'name' => 'required',
+                'surname' => 'required',
+                'dateBirth' => 'required',
+            ]);
+
             $photo_profile = time() . "." . $request->file('photo')->extension();
             $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
             $path = "public/images/$photo_profile";
 
             User::where('id', $id)
-                ->update(
-                    [
-                        'username' => $request->input('username'),
-                        'email' => $request->input('email')
-                    ]
-                );
+                ->update([
+                    'username' => $request->input('username'),
+                    'email' => $request->input('email')
+                ]);
             Person::where('id', $id)
-                ->update(
-                    [
-                        'name' => $request->input('name'),
-                        'surname' => $request->input('surname'),
-                        'date_birth' => $request->input('dateBirth'),
-                        'photo_profile' => $path
-                    ]
-                );
-            return $this->sendResponse([User::where('id', $id)->get(), Person::where('id', $id)->get()], 200);
+                ->update([
+                    'name' => $request->input('name'),
+                    'surname' => $request->input('surname'),
+                    'date_birth' => $request->input('dateBirth'),
+                    'photo_profile' => $path
+                ]);
+
+            $UserUpdated = User::find($id)
+                ->join('persons', 'users.id', '=', 'persons.id')
+                ->get();
+
+            return $this->sendResponse($UserUpdated, 200);
         } catch (Exception $error) {
             return $this->sendError($error, 'error to update user', 405);
         }

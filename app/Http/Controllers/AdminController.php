@@ -6,11 +6,13 @@ use Illuminate\Http\Request;
 
 class AdminController extends ReportController
 {
-    public function delete($id){
-
+    public function delete($id)
+    {
+        // send email with menssage
+        return $this->deleteReport($id);
     }
-    public function save($id){
-
+    public function saveReport($id)
+    {
+        // send email with menssage
     }
-
 }

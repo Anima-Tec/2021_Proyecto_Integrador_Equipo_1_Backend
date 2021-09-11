@@ -29,15 +29,21 @@ class ReportController extends ApiController
     public function createReport(Request $request)
     {
         try {
-            $Report = Report::create(
-                [
-                    'date' => $request->input('date'),
-                    'description' => $request->input('description'),
-                    'type_report' => $request->input('typeReport'),
-                    'assessment' => $request->input('assessment'),
-                    'id_place' => $request->input('idPlace'),
-                ]
-            );
+            $request->validate([
+                'date' => 'required',
+                'description' => 'required',
+                'type_report' => 'required',
+                'assessment' => 'required',
+                'id_place' => 'required',
+            ]);
+
+            $Report = Report::create([
+                'date' => $request->input('date'),
+                'description' => $request->input('description'),
+                'type_report' => $request->input('typeReport'),
+                'assessment' => $request->input('assessment'),
+                'id_place' => $request->input('idPlace'),
+            ]);
 
             return $this->sendResponse($Report, 201);
         } catch (Exception $error) {
@@ -48,15 +54,22 @@ class ReportController extends ApiController
     public function updateReport(Request $request, $id)
     {
         try {
+            $request->validate([
+                'date' => 'required',
+                'description' => 'required',
+                'type_report' => 'required',
+                'assessment' => 'required',
+                'id_place' => 'required',
+            ]);
+
             $Report = Report::where('id', $id)
-                ->update(
-                    [
-                        'date' => $request->input('date'),
-                        'type_report' => $request->input('typeReport'),
-                        'assessment' => $request->input('assessment'),
-                        'id_place' => $request->input('idPlace'),
-                    ]
-                );
+                ->update([
+                    'date' => $request->input('date'),
+                    'description' => $request->input('description'),
+                    'type_report' => $request->input('typeReport'),
+                    'assessment' => $request->input('assessment'),
+                    'id_place' => $request->input('idPlace'),
+                ]);
 
             return $this->sendResponse($Report, 200);
         } catch (Exception $error) {
