@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Person extends Model
 {
-
-    protected $connection='integrative_project';
-    protected $table='person';
-    protected $primaryKey = "person_id";
-    public $timestamps=false;
+    use HasFactory;
+    protected $table = 'persons';
+    protected $fillable = [
+        'id',
+        'name',
+        'surname',
+        'date_birth',
+        'photo_profile'
+    ];
 }
