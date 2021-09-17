@@ -15,7 +15,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::group(['middleware' => ['auth:sanctum']], function () {
   Route::get('/get/persons', [PersonController::class, 'getAllPersons']);
   Route::get('/get/person/{id}', [PersonController::class, 'getPerson']);
-  Route::post('/create/person', [PersonController::class, 'createPerson']);
   Route::post('/update/person/{id}', [PersonController::class, 'updatePerson']);
   Route::get('/delete/person/{id}', [PersonController::class, 'deletePerson']);
 
@@ -27,7 +26,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
   Route::get('/get/reports', [ReportController::class, 'getAllReports']);
   Route::get('/get/report/{id}', [ReportController::class, 'getReport']);
   Route::post('/create/report', [ReportController::class, 'createReport']);
-  Route::post('/update//{id}', [ReportController::class, 'updateReport']);
+  Route::post('/update/{id}', [ReportController::class, 'updateReport']);
   Route::get('/delete/report/{id}', [ReportController::class, 'deleteReport']);
 
   Route::get('/admin/save/{id}', [AdminController::class, 'save']);

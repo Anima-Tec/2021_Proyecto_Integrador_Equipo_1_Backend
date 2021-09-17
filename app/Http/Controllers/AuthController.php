@@ -20,13 +20,8 @@ class AuthController extends ApiController
                 'password' => 'required|string|confirmed',
                 'name' => 'required|string',
                 'surname' => 'required|string',
-                'dateBirth' => 'required',
-                'photo' => 'file'
+                'birth_date' => 'required',
             ]);
-
-            $photo_profile = time() . "." . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-            $path = "public/photo_profiles/$photo_profile";
 
             $User = User::create([
                 'username' => $request->input('username'),
@@ -34,35 +29,30 @@ class AuthController extends ApiController
                 'password' => bcrypt($request->input('password'))
             ]);
 
-            $token = $User->createToken('myapptoken')->plainTextToken;
+            $token = $User->createToken('token')->plainTextToken;
 
             $Person = Person::create([
                 'id' => $User->id,
                 'name' => $request->input('name'),
                 'surname' => $request->input('surname'),
-                'date_birth' => $request->input('dateBirth'),
-                'photo_profile' => $path
+                'date_birth' => $request->input('birth_date')
             ]);
 
             $NewUser = User::find($User->id)
                 ->join('persons', 'users.id', '=', 'persons.id')
                 ->get();
 
-            $response = [
+            Mail::to($User->email)->send(new \App\Mail\CreateAcount([
+                'title' => 'Registro con exito.',
+                'body' => 'Bienvenido ' . $Person->name . ' ' . $Person->surname . '. Disfruta de la plataforma'
+            ]));
+
+            return $this->sendResponse([
                 'user' => $NewUser,
                 'token' => $token
-            ];
-
-            $details = [
-                'title' => 'Registro con exito.',
-                'body' => 'Bienvenido ' . $Person->name . '. Disfruta de la plataforma'
-            ];
-
-            Mail::to($User->email)->send(new \App\Mail\CreateAcount($details));
-
-            return $this->sendResponse($response, 201);
+            ], 201);
         } catch (Exception $error) {
-            return $this->sendError($error, 'error to create user', 405);
+            return $this->sendError($error->errorInfo, 'Error al crear el usuario', 405);
         }
     }
 
@@ -77,23 +67,21 @@ class AuthController extends ApiController
             $User = User::where('email', $request->input(('email')))->first();
 
             if (!$User || !Hash::check($request->input('password'), $User->password)) {
-                return $this->sendError('', 'error to login', 405);
+                return $this->sendError('', 'Las credenciales no coinciden', 405);
             }
 
-            $token = $User->createToken('myapptoken')->plainTextToken;
+            $token = $User->createToken('token')->plainTextToken;
 
             $FullUser = User::find($User->id)
                 ->join('persons', 'users.id', '=', 'persons.id')
                 ->get();
 
-            $response = [
+            return $this->sendResponse([
                 'user' => $FullUser,
                 'token' => $token
-            ];
-
-            return $this->sendResponse($response, 201);
+            ], 201);
         } catch (Exception $error) {
-            return $this->sendError($error, 'error to create user', 405);
+            return $this->sendError($error->errorInfo, 'error to create user', 405);
         }
     }
 
@@ -101,8 +89,8 @@ class AuthController extends ApiController
     {
         auth()->user()->tokens()->delete();
 
-        return [
-            'menssage' => 'Logged out'
-        ];
+        return response()->json([
+            'menssage' => 'Sesión finalizada'
+        ], 200);
     }
 }

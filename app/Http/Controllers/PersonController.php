@@ -37,23 +37,25 @@ class PersonController extends ApiController
     {
         try {
             $request->validate([
-                'username' => 'required',
-                'email' => 'required',
-                'password' => 'required',
-                'name' => 'required',
-                'surname' => 'required',
-                'dateBirth' => 'required',
+                'username' => 'required|string',
+                'email' => 'required|string',
+                'password' => 'required|string',
+                'name' => 'required|string',
+                'surname' => 'required|string',
+                'birth_date' => 'required',
+                'photo' => 'file'
             ]);
 
             $photo_profile = time() . "." . $request->file('photo')->extension();
             $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-            $path = "public/images/$photo_profile";
+            $path = "public/photo_profiles/$photo_profile";
 
             User::where('id', $id)
                 ->update([
                     'username' => $request->input('username'),
                     'email' => $request->input('email')
                 ]);
+
             Person::where('id', $id)
                 ->update([
                     'name' => $request->input('name'),
@@ -68,7 +70,7 @@ class PersonController extends ApiController
 
             return $this->sendResponse($UserUpdated, 200);
         } catch (Exception $error) {
-            return $this->sendError($error, 'error to update user', 405);
+            return $this->sendError($error->errorInfo, 'error to update user', 405);
         }
     }
 
@@ -79,7 +81,7 @@ class PersonController extends ApiController
                 ->update(['active' => 0]);
             return $User;
         } catch (Exception $error) {
-            return $this->sendError($error, 'error to destroy user', 405);
+            return $this->sendError($error->errorInfo, 'error to destroy user', 405);
         }
     }
 }
