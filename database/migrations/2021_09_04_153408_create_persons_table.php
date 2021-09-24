@@ -17,7 +17,7 @@ class CreatePersonsTable extends Migration
             $table->foreignId('id')->constrained('users');
             $table->string('name');
             $table->string('surname');
-            $table->date('date_birth');
+            $table->date('birth_date');
             $table->string('photo_profile')->nullable();
             $table->timestamps();
         });

@@ -3,34 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Person;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class PersonController extends ApiController
 {
     public function getAllPersons()
     {
-        $Users = User::where('active', 1)
-            ->join('persons', 'users.id', '=', 'persons.id')
+        $Persons = Person::where('active', 1)
+            ->join('users', 'persons.id', '=', 'users.id')
             ->get();
-        return $Users;
+        return $Persons;
     }
 
     public function getPerson($id)
     {
-        $exist = User::find($id);
+        $heExist = Person::find($id);
 
-        if ($exist) {
-            $User = User::where([['persons.id', $id], ['active', 1]])
-                ->join('persons', 'users.id', '=', 'persons.id')
+        if ($heExist) {
+            $Person = Person::where([['persons.id', $id], ['active', 1]])
+                ->join('users', 'persons.id', '=', 'users.id')
                 ->get();
 
-            return $this->sendResponse($User, 200);
+            return $this->sendResponse($Person, 200);
         }
 
-        return $this->sendError($exist, 'user not found', 405);
+        return $this->sendError($heExist, 'user not found', 405);
     }
 
     public function updatePerson(Request $request, $id)
@@ -42,21 +42,26 @@ class PersonController extends ApiController
                 'password' => 'required|string',
                 'name' => 'required|string',
                 'surname' => 'required|string',
-                'birth_date' => 'required',
-                'photo' => 'file'
+                'birth_date' => 'required'
             ]);
 
-            $photo_profile = time() . "." . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-            $path = "public/photo_profiles/$photo_profile";
+            if ($request->file('photo')) {
+                $photo_profile = time() . "." . $request->file('photo')->extension();
+                $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
+                $path = "public/photo_profiles/$photo_profile";
+            } else {
+                $path = '';
+            }
 
-            User::where('id', $id)
+            DB::table('users')
+                ->where('id', $id)
                 ->update([
                     'username' => $request->input('username'),
                     'email' => $request->input('email')
                 ]);
 
-            Person::where('id', $id)
+            DB::table('persons')
+                ->where('id', $id)
                 ->update([
                     'name' => $request->input('name'),
                     'surname' => $request->input('surname'),
@@ -64,8 +69,8 @@ class PersonController extends ApiController
                     'photo_profile' => $path
                 ]);
 
-            $UserUpdated = User::find($id)
-                ->join('persons', 'users.id', '=', 'persons.id')
+            $UserUpdated = Person::find($id)
+                ->join('users', 'persons.id', '=', 'users.id')
                 ->get();
 
             return $this->sendResponse($UserUpdated, 200);
