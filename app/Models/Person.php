@@ -13,7 +13,7 @@ class Person extends Model
         'id',
         'name',
         'surname',
-        'date_birth',
+        'birth_date',
         'photo_profile'
     ];
 }

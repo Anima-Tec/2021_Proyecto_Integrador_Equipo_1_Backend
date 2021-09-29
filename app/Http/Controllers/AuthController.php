@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Person;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class AuthController extends ApiController
@@ -29,22 +30,24 @@ class AuthController extends ApiController
                 'password' => bcrypt($request->input('password'))
             ]);
 
-            $token = $User->createToken('token')->plainTextToken;
-
             $Person = Person::create([
                 'id' => $User->id,
                 'name' => $request->input('name'),
                 'surname' => $request->input('surname'),
-                'date_birth' => $request->input('birth_date')
+                'birth_date' => $request->input('birth_date')
             ]);
 
-            $NewUser = User::find($User->id)
+            $token = $User->createToken('token')->plainTextToken;
+
+            $NewUser = DB::table('users')
                 ->join('persons', 'users.id', '=', 'persons.id')
+                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
+                ->where('users.id', $User->id)
                 ->get();
 
             Mail::to($User->email)->send(new \App\Mail\CreateAcount([
                 'title' => 'Registro con exito.',
-                'body' => 'Bienvenido ' . $Person->name . ' ' . $Person->surname . '. Disfruta de la plataforma'
+                'body' => 'Bienvenido ' . $Person->name . ' ' . $Person->surname . '. Disfruta de la plataforma.'
             ]));
 
             return $this->sendResponse([
@@ -52,7 +55,7 @@ class AuthController extends ApiController
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
-            return $this->sendError($error->errorInfo, 'Error al crear el usuario', 405);
+            return $this->sendError($error, 'error al registrar el usuario', 405);
         }
     }
 
@@ -60,11 +63,12 @@ class AuthController extends ApiController
     {
         try {
             $request->validate([
-                'email' => 'required|string',
+                'username' => 'required|string',
                 'password' => 'required|string'
             ]);
 
-            $User = User::where('email', $request->input(('email')))->first();
+            $User = User::where('username', $request->input(('username')))->first();
+            Person::find($User->id);
 
             if (!$User || !Hash::check($request->input('password'), $User->password)) {
                 return $this->sendError('', 'Las credenciales no coinciden', 405);
@@ -72,8 +76,10 @@ class AuthController extends ApiController
 
             $token = $User->createToken('token')->plainTextToken;
 
-            $FullUser = User::find($User->id)
+            $FullUser = DB::table('users')
                 ->join('persons', 'users.id', '=', 'persons.id')
+                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
+                ->where('users.id', $User->id)
                 ->get();
 
             return $this->sendResponse([
@@ -81,7 +87,7 @@ class AuthController extends ApiController
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
-            return $this->sendError($error->errorInfo, 'error to create user', 405);
+            return $this->sendError($error, 'error al loguearse', 405);
         }
     }
 

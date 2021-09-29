@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Person;
 use App\Models\User;
 use Exception;
@@ -20,9 +19,9 @@ class PersonController extends ApiController
 
     public function getPerson($id)
     {
-        $exist = User::find($id);
+        $heExist = User::find($id);
 
-        if ($exist) {
+        if ($heExist) {
             $User = User::where([['persons.id', $id], ['active', 1]])
                 ->join('persons', 'users.id', '=', 'persons.id')
                 ->get();
@@ -30,7 +29,7 @@ class PersonController extends ApiController
             return $this->sendResponse($User, 200);
         }
 
-        return $this->sendError($exist, 'user not found', 405);
+        return $this->sendError($heExist, 'usuario no encontrado', 405);
     }
 
     public function updatePerson(Request $request, $id)
@@ -42,13 +41,16 @@ class PersonController extends ApiController
                 'password' => 'required|string',
                 'name' => 'required|string',
                 'surname' => 'required|string',
-                'birth_date' => 'required',
-                'photo' => 'file'
+                'birth_date' => 'required'
             ]);
 
-            $photo_profile = time() . "." . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-            $path = "public/photo_profiles/$photo_profile";
+            if ($request->file('photo')) {
+                $photo_profile = time() . "." . $request->file('photo')->extension();
+                $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
+                $path = "public/photo_profiles/$photo_profile";
+            } else {
+                $path = '';
+            }
 
             User::where('id', $id)
                 ->update([
@@ -60,17 +62,17 @@ class PersonController extends ApiController
                 ->update([
                     'name' => $request->input('name'),
                     'surname' => $request->input('surname'),
-                    'date_birth' => $request->input('dateBirth'),
+                    'birth_date' => $request->input('birth_date'),
                     'photo_profile' => $path
                 ]);
 
-            $UserUpdated = User::find($id)
-                ->join('persons', 'users.id', '=', 'persons.id')
+            $UserUpdated = Person::find($id)
+                ->join('users', 'persons.id', '=', 'users.id')
                 ->get();
 
             return $this->sendResponse($UserUpdated, 200);
         } catch (Exception $error) {
-            return $this->sendError($error->errorInfo, 'error to update user', 405);
+            return $this->sendError($error, 'error al actualizar el usuario', 405);
         }
     }
 
@@ -79,9 +81,9 @@ class PersonController extends ApiController
         try {
             $User = User::where('id', $id)
                 ->update(['active' => 0]);
-            return $User;
+            return $this->sendResponse($User, 200);
         } catch (Exception $error) {
-            return $this->sendError($error->errorInfo, 'error to destroy user', 405);
+            return $this->sendError($error->errorInfo, 'error al eliminar el usuario', 405);
         }
     }
 }
