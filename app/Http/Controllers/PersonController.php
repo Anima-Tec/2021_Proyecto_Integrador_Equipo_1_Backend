@@ -9,30 +9,21 @@ use Exception;
 
 class PersonController extends ApiController
 {
-    public function getAllPersons()
-    {
-        $Users = User::where('active', 1)
-            ->join('persons', 'users.id', '=', 'persons.id')
-            ->get();
-        return $Users;
-    }
-
-    public function getPerson($id)
+    public function show($id)
     {
         $heExist = User::find($id);
-
         if ($heExist) {
             $User = User::where([['persons.id', $id], ['active', 1]])
                 ->join('persons', 'users.id', '=', 'persons.id')
+                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
                 ->get();
 
             return $this->sendResponse($User, 200);
         }
-
         return $this->sendError($heExist, 'usuario no encontrado', 405);
     }
 
-    public function updatePerson(Request $request, $id)
+    public function update(Request $request, $id)
     {
         try {
             $request->validate([
@@ -68,6 +59,7 @@ class PersonController extends ApiController
 
             $UserUpdated = Person::find($id)
                 ->join('users', 'persons.id', '=', 'users.id')
+                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
                 ->get();
 
             return $this->sendResponse($UserUpdated, 200);
@@ -76,7 +68,7 @@ class PersonController extends ApiController
         }
     }
 
-    public function deletePerson($id)
+    public function delete($id)
     {
         try {
             $User = User::where('id', $id)

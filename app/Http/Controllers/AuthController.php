@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Exception;
 
 class AuthController extends ApiController
@@ -39,19 +38,13 @@ class AuthController extends ApiController
 
             $token = $User->createToken('token')->plainTextToken;
 
-            $NewUser = DB::table('users')
-                ->join('persons', 'users.id', '=', 'persons.id')
-                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
-                ->where('users.id', $User->id)
-                ->get();
-
             Mail::to($User->email)->send(new \App\Mail\CreateAcount([
                 'title' => 'Registro con exito.',
                 'body' => 'Bienvenido ' . $Person->name . ' ' . $Person->surname . '. Disfruta de la plataforma.'
             ]));
 
             return $this->sendResponse([
-                'user' => $NewUser,
+                'id' => $User->id,
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
@@ -76,14 +69,8 @@ class AuthController extends ApiController
 
             $token = $User->createToken('token')->plainTextToken;
 
-            $FullUser = DB::table('users')
-                ->join('persons', 'users.id', '=', 'persons.id')
-                ->select('users.username', 'users.email', 'persons.name', 'persons.surname', 'persons.birth_date', 'persons.photo_profile')
-                ->where('users.id', $User->id)
-                ->get();
-
             return $this->sendResponse([
-                'user' => $FullUser,
+                'id_user' => $User->id,
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
