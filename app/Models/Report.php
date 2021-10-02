@@ -17,6 +17,7 @@ class Report extends Model
         'assessment',
         'num_reports',
         'active',
-        'id_place'
+        'id_place',
+        'photo'
     ];
 }

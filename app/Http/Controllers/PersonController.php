@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Person;
+use App\Models\Report;
 use App\Models\User;
 use Exception;
 
@@ -27,12 +28,9 @@ class PersonController extends ApiController
     {
         try {
             $request->validate([
-                'username' => 'required|string',
-                'email' => 'required|string',
-                'password' => 'required|string',
                 'name' => 'required|string',
                 'surname' => 'required|string',
-                'birth_date' => 'required'
+                'password' => 'required|string|confirmed',
             ]);
 
             if ($request->file('photo')) {
@@ -40,20 +38,13 @@ class PersonController extends ApiController
                 $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
                 $path = "public/photo_profiles/$photo_profile";
             } else {
-                $path = '';
+                $path = NULL;
             }
-
-            User::where('id', $id)
-                ->update([
-                    'username' => $request->input('username'),
-                    'email' => $request->input('email')
-                ]);
 
             Person::where('id', $id)
                 ->update([
                     'name' => $request->input('name'),
                     'surname' => $request->input('surname'),
-                    'birth_date' => $request->input('birth_date'),
                     'photo_profile' => $path
                 ]);
 
@@ -73,9 +64,22 @@ class PersonController extends ApiController
         try {
             $User = User::where('id', $id)
                 ->update(['active' => 0]);
-            return $this->sendResponse($User, 200);
+            return $this->sendResponse(["userId" => $User], 200);
         } catch (Exception $error) {
-            return $this->sendError($error->errorInfo, 'error al eliminar el usuario', 405);
+            return $this->sendError($error, 'error al eliminar el usuario', 405);
+        }
+    }
+
+    public function report($id)
+    {
+        $Report = Report::find($id);
+
+        Report::where('id', $id)
+            ->update(['num_reports' => $Report->num_reports + 1]);
+
+        if (Report::find($id)->num_reports >= 5) {
+            Report::where('id', $id)
+                ->update(['active' => 2]);
         }
     }
 }

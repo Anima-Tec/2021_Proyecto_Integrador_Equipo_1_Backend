@@ -44,7 +44,7 @@ class AuthController extends ApiController
             ]));
 
             return $this->sendResponse([
-                'id' => $User->id,
+                'userId' => $User->id,
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
@@ -57,7 +57,7 @@ class AuthController extends ApiController
         try {
             $request->validate([
                 'username' => 'required|string',
-                'password' => 'required|string'
+                'password' => 'required|string',
             ]);
 
             $User = User::where('username', $request->input(('username')))->first();
@@ -70,7 +70,7 @@ class AuthController extends ApiController
             $token = $User->createToken('token')->plainTextToken;
 
             return $this->sendResponse([
-                'id_user' => $User->id,
+                'userId' => $User->id,
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
