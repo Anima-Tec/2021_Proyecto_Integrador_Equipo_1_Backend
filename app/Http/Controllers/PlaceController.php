@@ -22,7 +22,7 @@ class PlaceController extends ApiController
         }
     }
 
-    public function store(Request $request)
+    public static function store(Request $request)
     {
         $Place = Place::where('address', $request->input('address'))->first();
 

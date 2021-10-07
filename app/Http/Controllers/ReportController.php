@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\Place;
-use App\Models\Person;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PlaceController;
+use DateTime;
 use Exception;
 
 class ReportController extends ApiController
@@ -23,48 +23,67 @@ class ReportController extends ApiController
         return NULL;
     }
 
+    public function generateDateAgo($reports)
+    {
+        $reports->map(function ($item) {
+            $today = new DateTime();
+            $dateReport = new DateTime($item->date);
+            $diference = $today->diff($dateReport);
+            unset($item->date);
+            return $item->date_ago = $diference->format('%Y años %m meses %d days %H horas %i minutos %s segundos');
+        });
+        return $reports;
+    }
+
     public function indexAdmin()
     {
         $Reports = Report::where('active', 2)
             ->select('id', 'date', 'type_report', 'description', 'assessment', 'photo')
             ->get();
-
         return $this->sendResponse($Reports, 200);
     }
 
     public function indexPlace($address)
     {
         $Place = Place::where('address', $address)->first();
-        $Reports = Report::where([['active', 1], ['id_place', $Place->id]])
-            ->select('id', 'date', 'type_report', 'description', 'assessment', 'photo')
+        $Reports = Report::where([['rd.id_place', $Place->id], ['active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+            ->join('places', 'reports.id_place', '=', 'places.id')
+            ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
             ->get();
-
-        return $this->sendResponse($Reports, 200);
+        return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function indexPerson($id)
     {
-        $Person = Person::where('id', $id)->first();
-        $Reports = DB::select('select r.id, r.date, r.type_report, r.description, r.assessment, r.photo  from reports_created as rd inner join reports as r on rd.id_report = r.id where rd.id_person = :id && r.active = 1', ['id' => $Person->id]);
-        return $this->sendResponse($Reports, 200);
+        $Reports = Report::where([['rd.id_person', $id], ['active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+            ->join('places', 'reports.id_place', '=', 'places.id')
+            ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
+            ->get();
+        return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function index()
     {
         $Reports = Report::where('active', 1)
-            ->select('id', 'date', 'type_report', 'description', 'assessment', 'photo')
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+            ->join('places', 'reports.id_place', '=', 'places.id')
+            ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
             ->get();
-        return $this->sendResponse($Reports, 200);
+        return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function show($id)
     {
-        $Report = Report::where([['id', $id], ['active', 1]])
-            ->select('id', 'date', 'type_report', 'description', 'assessment', 'photo')
+        $Report = Report::where([['reports.id', $id], ['active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+            ->join('places', 'reports.id_place', '=', 'places.id')
+            ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
             ->get();
 
         if ($Report) {
-            return $this->sendResponse($Report, 200);
+            return $this->sendResponse($this->generateDateAgo($Report), 200);
         }
         return $this->sendError('report not found', 405);
     }
@@ -95,7 +114,9 @@ class ReportController extends ApiController
                 ->insert([
                     'id_report' => $Report->id,
                     'id_place' => $idPlace,
-                    'id_person' => $request->input('id_person')
+                    'id_person' => $request->input('id_person'),
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'updated_at' => date("Y-m-d H:i:s"),
                 ]);
 
             return $this->sendResponse('creado correctamente', 201);
