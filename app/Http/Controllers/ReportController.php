@@ -7,33 +7,12 @@ use App\Models\Report;
 use App\Models\Place;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PlaceController;
-use DateTime;
+use App\Http\Traits\FunctionsTrait;
 use Exception;
 
 class ReportController extends ApiController
 {
-
-    public function createPathPhoto(Request $request)
-    {
-        if ($request->file('photo')) {
-            $photo_profile = time() . "." . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/photo_reports'), $photo_profile);
-            return "public/photo_reports/$photo_profile";
-        }
-        return NULL;
-    }
-
-    public function generateDateAgo($reports)
-    {
-        $reports->map(function ($item) {
-            $today = new DateTime();
-            $dateReport = new DateTime($item->date);
-            $diference = $today->diff($dateReport);
-            unset($item->date);
-            return $item->date_ago = $diference->format('%Y años %m meses %d days %H horas %i minutos %s segundos');
-        });
-        return $reports;
-    }
+    use FunctionsTrait;
 
     public function indexAdmin()
     {
@@ -46,40 +25,44 @@ class ReportController extends ApiController
     public function indexPlace($address)
     {
         $Place = Place::where('address', $address)->first();
-        $Reports = Report::where([['rd.id_place', $Place->id], ['active', 1]])
-            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+        $Reports = Report::where([['rd.id_place', $Place->id], ['reports.active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date', 'username')
             ->join('places', 'reports.id_place', '=', 'places.id')
             ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
+            ->join('users', 'users.id', '=', 'rd.id_person')
             ->get();
         return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function indexPerson($id)
     {
-        $Reports = Report::where([['rd.id_person', $id], ['active', 1]])
-            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+        $Reports = Report::where([['rd.id_person', $id], ['reports.active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date', 'username')
             ->join('places', 'reports.id_place', '=', 'places.id')
             ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
+            ->join('users', 'users.id', '=', 'rd.id_person')
             ->get();
         return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function index()
     {
-        $Reports = Report::where('active', 1)
-            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+        $Reports = Report::where('reports.active', 1)
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date', 'username')
             ->join('places', 'reports.id_place', '=', 'places.id')
             ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
+            ->join('users', 'users.id', '=', 'rd.id_person')
             ->get();
         return $this->sendResponse($this->generateDateAgo($Reports), 200);
     }
 
     public function show($id)
     {
-        $Report = Report::where([['reports.id', $id], ['active', 1]])
-            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date')
+        $Report = Report::where([['reports.id', $id], ['reports.active', 1]])
+            ->select('reports.id', 'type_report', 'description', 'assessment', 'photo', 'address', 'rd.created_at as date', 'username')
             ->join('places', 'reports.id_place', '=', 'places.id')
             ->join('reports_created as rd', 'reports.id', '=', 'rd.id_report',)
+            ->join('users', 'users.id', '=', 'rd.id_person')
             ->get();
 
         if ($Report) {
@@ -107,7 +90,7 @@ class ReportController extends ApiController
                 'type_report' => $request->input('type_report'),
                 'assessment' => $request->input('assessment'),
                 'id_place' => $idPlace,
-                'photo' => $this->createPathPhoto($request),
+                'photo' => $this->createPathPhoto($request, "reports"),
             ]);
 
             DB::table('reports_created')
@@ -137,7 +120,7 @@ class ReportController extends ApiController
                     'description' => $request->input('description'),
                     'type_report' => $request->input('typeReport'),
                     'assessment' => $request->input('assessment'),
-                    'photo' => $this->createPathPhoto($request),
+                    'photo' => $this->createPathPhoto($request, "reports"),
                     'id_place' => $idPlace,
                 ]);
 

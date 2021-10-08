@@ -6,10 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\Person;
 use App\Models\Report;
 use App\Models\User;
+use App\Http\Traits\FunctionsTrait;
 use Exception;
 
 class PersonController extends ApiController
 {
+    use FunctionsTrait;
+
     public function show($id)
     {
         $heExist = User::find($id);
@@ -33,19 +36,11 @@ class PersonController extends ApiController
                 'password' => 'required|string|confirmed',
             ]);
 
-            if ($request->file('photo')) {
-                $photo_profile = time() . "." . $request->file('photo')->extension();
-                $request->file('photo')->move(public_path('/photo_profiles'), $photo_profile);
-                $path = "public/photo_profiles/$photo_profile";
-            } else {
-                $path = NULL;
-            }
-
             Person::where('id', $id)
                 ->update([
                     'name' => $request->input('name'),
                     'surname' => $request->input('surname'),
-                    'photo_profile' => $path
+                    'photo_profile' => $this->createPathPhoto($request, "persons"),
                 ]);
 
             $UserUpdated = Person::find($id)
