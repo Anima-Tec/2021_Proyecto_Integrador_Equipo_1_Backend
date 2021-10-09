@@ -92,7 +92,7 @@ class ReportController extends ApiController
                 'id_place' => $idPlace,
                 'photo' => $this->createPathPhoto($request, "reports"),
             ]);
-
+            
             DB::table('reports_created')
                 ->insert([
                     'id_report' => $Report->id,
@@ -101,7 +101,6 @@ class ReportController extends ApiController
                     'created_at' => date("Y-m-d H:i:s"),
                     'updated_at' => date("Y-m-d H:i:s"),
                 ]);
-
             return $this->sendResponse('creado correctamente', 201);
         } catch (Exception $error) {
             return $this->sendError($error, 405);
@@ -111,9 +110,7 @@ class ReportController extends ApiController
     public function update(Request $request, $id)
     {
         try {
-
             $idPlace = PlaceController::store($request);
-
             Report::where('id', $id)
                 ->update([
                     'date' => $request->input('date'),
@@ -123,22 +120,20 @@ class ReportController extends ApiController
                     'photo' => $this->createPathPhoto($request, "reports"),
                     'id_place' => $idPlace,
                 ]);
-
             return $this->sendResponse('actualizado correctamente', 200);
         } catch (Exception $error) {
             return $this->sendError($error, 405);
         }
     }
 
-    public function delete($id)
+    public static function delete($id)
     {
         try {
             Report::where('id', $id)
                 ->update(['active' => 0]);
-
-            return $this->sendResponse('reporte eliminado', 200);
+            return response()->json('reporte eliminado', 200);
         } catch (Exception $error) {
-            return $this->sendError($error, 405);
+            return response()->json($error, 405);
         }
     }
 }
