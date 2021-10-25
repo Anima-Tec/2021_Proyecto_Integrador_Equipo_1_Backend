@@ -9,13 +9,11 @@ trait FunctionsTrait
 {
     public function createPathPhoto(Request $request, $folder)
     {
-        if ($request->file('photo')) {
-            $photo_profile = time() . '.' . $request->file('photo')->extension();
-            $request->file('photo')->move(public_path('/' . $folder), $photo_profile);
-            $path = '/' . $folder . '/' . $photo_profile;
-            return $path;
-        }
-        return NULL;
+        $response = cloudinary()->upload($request->file('photo')->getRealPath(), [
+            'folder' => $folder
+        ])->getSecurePath();
+
+        return $response;
     }
 
     public function generateDateAgo($reports)
@@ -29,6 +27,4 @@ trait FunctionsTrait
         });
         return $reports;
     }
-
-    
 }
