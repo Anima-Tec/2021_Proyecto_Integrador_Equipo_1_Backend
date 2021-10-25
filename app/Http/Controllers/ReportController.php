@@ -78,7 +78,8 @@ class ReportController extends ApiController
                 'date' => 'required',
                 'description' => 'required|string',
                 'type_report' => 'required|string',
-                'address' => 'required|string',
+                'address_place' => 'required|string',
+                'name_place' => 'required|string',
                 'assessment' => 'required',
             ]);
 
