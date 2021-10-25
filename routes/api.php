@@ -13,24 +13,28 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-  Route::get('/get/persons', [PersonController::class, 'getAllPersons']);
-  Route::get('/get/person/{id}', [PersonController::class, 'getPerson']);
-  Route::post('/update/person/{id}', [PersonController::class, 'updatePerson']);
-  Route::get('/delete/person/{id}', [PersonController::class, 'deletePerson']);
+  // routes for person
+  Route::get('/person/{id}', [PersonController::class, 'show']);
+  Route::patch('/person/{id}', [PersonController::class, 'update']);
+  Route::delete('/person/{id}', [PersonController::class, 'delete']);
+  Route::patch('/person/report', [PersonController::class, 'report']);
 
-  Route::get('/get/places', [PlaceController::class, 'getPlaces']);
-  Route::get('/get/place/{id}', [PlaceController::class, 'getPlace']);
-  Route::post('/create/place', [PlaceController::class, 'createPlace']);
-  Route::post('/update/place/{id}', [PlaceController::class, 'updatePlace']);
+  // routes for reports
+  Route::get('/place/reports/{address}', [ReportController::class, 'indexPlace']);
+  Route::get('/person/reports/{id}', [ReportController::class, 'indexPerson']);
+  Route::get('/reports', [ReportController::class, 'index']);
+  Route::get('/report/{id}', [ReportController::class, 'show']);
+  Route::post('/report', [ReportController::class, 'store']);
+  Route::patch('/report/{id}', [ReportController::class, 'update']);
+  Route::delete('/report/{id}', [ReportController::class, 'delete']);
 
-  Route::get('/get/reports', [ReportController::class, 'getAllReports']);
-  Route::get('/get/report/{id}', [ReportController::class, 'getReport']);
-  Route::post('/create/report', [ReportController::class, 'createReport']);
-  Route::post('/update/{id}', [ReportController::class, 'updateReport']);
-  Route::get('/delete/report/{id}', [ReportController::class, 'deleteReport']);
+  // routes for admin
+  Route::get('/admin/view-reports', [ReportController::class, 'indexAdmin']);
+  Route::put('/admin/report/{id}', [AdminController::class, 'save']);
+  Route::delete('/admin/report/{id}', [AdminController::class, 'delete']);
 
-  Route::get('/admin/save/{id}', [AdminController::class, 'save']);
-  Route::get('/admin/delete/{id}', [AdminController::class, 'delete']);
+  // routes for place
+  Route::get('/place/{address}', [PlaceController::class, 'show']);
 
   Route::post('/logout', [AuthController::class, 'logout']);
 });

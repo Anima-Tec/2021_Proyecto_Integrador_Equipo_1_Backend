@@ -19,8 +19,9 @@ class CreateReportsTable extends Migration
             $table->enum('type_report', ['opinión', 'denuncia']);
             $table->string('description');
             $table->integer('assessment')->default(1);
+            $table->string('photo')->nullable();
             $table->integer('num_reports')->default(0);
-            $table->tinyInteger('active')->default(0);
+            $table->tinyInteger('active')->default(1);
             $table->unsignedBigInteger('id_place');
             $table->foreign('id_place')->references('id')->on('places');
             $table->timestamps();
