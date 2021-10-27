@@ -20,4 +20,14 @@ class Report extends Model
         'id_place',
         'photo'
     ];
+
+    public function person()
+    {
+        return $this->hasOne(Person::class);
+    }
+
+    public function place()
+    {
+        return $this->hasOne(Place::class);
+    }
 }

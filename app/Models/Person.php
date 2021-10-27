@@ -16,4 +16,9 @@ class Person extends Model
         'birth_date',
         'photo_profile'
     ];
+
+    public function reports()
+    {
+        return $this->hasMany(ReportPerson::class);
+    }
 }
