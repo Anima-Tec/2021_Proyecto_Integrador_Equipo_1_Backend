@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Place;
+use App\Models\Report;
 use App\Models\ReportPerson;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,8 +26,8 @@ class ReportPersonFactory extends Factory
     {
         return [
             'id_person' => $this->faker->numberBetween(1, User::count()),
-            'id_report' => $this->faker->unique()->numberBetween(1, User::count()),
-            'id_place' => $this->faker->random_int()
+            'id_place' => Place::factory(),
+            'id_report' => Report::factory(),
         ];
     }
 }

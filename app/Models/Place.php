@@ -14,9 +14,4 @@ class Place extends Model
         'name',
         'address'
     ];
-
-    public function reports()
-    {
-        return $this->hasMany(Report::class);
-    }
 }

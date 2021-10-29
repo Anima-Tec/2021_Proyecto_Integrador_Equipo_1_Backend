@@ -25,10 +25,10 @@ class ReportFactory extends Factory
         return [
             'date' => $this->faker->date(),
             'type_report' => $this->faker->randomElement(['opinión', 'denuncia']),
-            'description' => $this->faker->paragraph(),
+            'description' => $this->faker->paragraph(2),
             'assessment' => $this->faker->numberBetween(1, 5),
             'photo' => 'https://source.unsplash.com/random',
-            'id_place' => $this->faker->numberBetween(1, Place::count()),
+            'id_place' => Place::factory(),
         ];
     }
 }
