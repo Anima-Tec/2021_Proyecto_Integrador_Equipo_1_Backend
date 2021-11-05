@@ -17,8 +17,8 @@ class Person extends Model
         'photo_profile'
     ];
 
-    public function reports()
+    public function personReport()
     {
-        return $this->hasMany(ReportPerson::class);
+        return $this->hasOne(ReportPerson::class, 'id_person');
     }
 }

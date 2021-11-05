@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Person;
 use App\Models\Place;
 use App\Models\Report;
 use App\Models\ReportPerson;
@@ -25,7 +26,7 @@ class ReportPersonFactory extends Factory
     public function definition()
     {
         return [
-            'id_person' => $this->faker->numberBetween(1, User::count()),
+            'id_person' => Person::factory(),
             'id_place' => Place::factory(),
             'id_report' => Report::factory(),
         ];

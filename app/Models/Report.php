@@ -20,4 +20,9 @@ class Report extends Model
         'id_place',
         'photo'
     ];
+
+    public function personReport()
+    {
+        return $this->hasMany(ReportPerson::class, 'id_report');
+    }
 }
