@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Person;
 use App\Models\Report;
 use App\Models\Place;
 use App\Models\ReportPerson;
-use GuzzleHttp\Promise\Create;
 use Illuminate\Database\Seeder;
 
 class ReportSeeder extends Seeder
@@ -17,10 +17,19 @@ class ReportSeeder extends Seeder
      */
     public function run()
     {
-        ReportPerson::factory()
-            ->has(Place::factory()
-                ->has(Report::factory()->count(10))
-                ->count(20))
+        Place::factory()
+            ->has(Report::factory()->count(5))
+            ->count(10)
             ->create();
+
+        $reports = Report::all();
+
+        $reports->each(function ($report) {
+            ReportPerson::create([
+                'id_person' => mt_rand(1, Person::count()),
+                'id_report' => $report->id,
+                'id_place' => $report->id_place
+            ]);
+        });
     }
 }

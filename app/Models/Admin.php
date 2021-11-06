@@ -14,9 +14,4 @@ class Admin extends Model
     protected $fillable = [
         'id'
     ];
-
-    public function reports()
-    {
-        return $this->hasMany(Report::class);
-    }
 }
