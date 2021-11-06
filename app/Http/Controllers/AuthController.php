@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admin;
 use App\Models\Person;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -61,16 +62,21 @@ class AuthController extends ApiController
             ]);
 
             $User = User::where('username', $request->input(('username')))->first();
-            Person::find($User->id);
 
             if (!$User || !Hash::check($request->input('password'), $User->password)) {
                 return $this->sendError('', 'Las credenciales no coinciden', 405);
             }
 
             $token = $User->createToken('token')->plainTextToken;
+            $typeUser = 'normal';
+
+            if(Admin::find($User->id)){
+                $typeUser = 'admin';
+            }
 
             return $this->sendResponse([
                 'userId' => $User->id,
+                'typeUser' => $typeUser,
                 'token' => $token
             ], 201);
         } catch (Exception $error) {
