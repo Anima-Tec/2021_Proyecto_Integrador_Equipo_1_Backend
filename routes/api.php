@@ -30,7 +30,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
   // routes for admin
   Route::get('/admin/view-reports', [ReportController::class, 'indexAdmin']);
-  Route::put('/admin/report/{id}', [AdminController::class, 'save']);
+  Route::patch('/admin/report/{id}', [AdminController::class, 'save']);
   Route::delete('/admin/report/{id}', [AdminController::class, 'delete']);
 
   // routes for place
