@@ -17,7 +17,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
   Route::get('/person/{id}', [PersonController::class, 'show']);
   Route::patch('/person/{id}', [PersonController::class, 'update']);
   Route::delete('/person/{id}', [PersonController::class, 'delete']);
-  Route::patch('/person/report', [PersonController::class, 'report']);
+  Route::post('/person/report', [PersonController::class, 'report']);
 
   // routes for reports
   Route::get('/place/reports/{address}', [ReportController::class, 'indexPlace']);
