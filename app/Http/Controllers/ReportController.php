@@ -16,7 +16,7 @@ class ReportController extends ApiController
 
     public function indexAdmin()
     {
-        $Reports = $this->getReports(['reports.active', 2]);
+        $Reports = $this->getReports(['reports.active' => 2]);
         return $this->sendResponse($Reports, 200);
     }
 
@@ -41,7 +41,7 @@ class ReportController extends ApiController
 
     public function show($id)
     {
-        $Report = $this->getReports([['reports.id', $id], ['reports.active', 1]]);
+        $Report = $this->getReports([['reports.id', $id], ['reports.active', 1, '||', 'reports.active', 2]]);
 
         if ($Report) {
             return $this->sendResponse($this->generateDateAgo($Report), 200);
