@@ -14,4 +14,9 @@ class Place extends Model
         'name',
         'address'
     ];
+
+    public function report()
+    {
+        return $this->hasMany(Report::class, 'id_place');
+    }
 }
