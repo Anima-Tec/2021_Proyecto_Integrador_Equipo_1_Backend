@@ -7,6 +7,7 @@ use App\Models\Person;
 use App\Models\Report;
 use App\Models\User;
 use App\Http\Traits\FunctionsTrait;
+use App\Models\ReportsReview;
 use Exception;
 
 class PersonController extends ApiController
@@ -65,16 +66,28 @@ class PersonController extends ApiController
         }
     }
 
-    public function report($id)
+    public function report(Request $request)
     {
-        $Report = Report::find($id);
+        $Report = Report::find($request->input('id_report'));
+        $wasReported = ReportsReview::where([['id_report', $Report->id], ['id_person', $request->input('id_person')]])->first();
 
-        Report::where('id', $id)
-            ->update(['num_reports' => $Report->num_reports + 1]);
+        if (!$wasReported) {
+            Report::where('id', $Report->id)
+                ->update(['num_reports' => $Report->num_reports + 1]);
 
-        if (Report::find($id)->num_reports >= 5) {
-            Report::where('id', $id)
-                ->update(['active' => 2]);
+            if (Report::find($Report->id)->num_reports >= 5) {
+                Report::where('id', $Report->id)
+                    ->update(['active' => 2]);
+            }
+
+            ReportsReview::create([
+                'id_report' => $Report->id,
+                'id_person' => $request->input('id_person')
+            ]);
+
+            return $this->sendResponse("Reportado correctamente.", 200);
         }
+
+        return $this->sendResponse("Su reporte ya esta en revisión", 200);
     }
 }
