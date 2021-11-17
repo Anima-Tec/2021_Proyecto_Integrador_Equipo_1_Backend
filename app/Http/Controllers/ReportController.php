@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\Place;
-use Illuminate\Support\Facades\DB;
+use App\Models\ReportPerson;
 use App\Http\Controllers\PlaceController;
 use App\Http\Traits\FunctionsTrait;
 use Exception;
@@ -82,14 +82,13 @@ class ReportController extends ApiController
                 'photo' => $this->createPathPhoto($request, "reports"),
             ]);
 
-            DB::table('reports_created')
-                ->insert([
-                    'id_report' => $Report->id,
-                    'id_place' => $idPlace,
-                    'id_person' => $request->input('id_person'),
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'updated_at' => date("Y-m-d H:i:s"),
-                ]);
+            ReportPerson::create([
+                'id_report' => $Report->id,
+                'id_place' => $idPlace,
+                'id_person' => $request->input('id_person'),
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
             return $this->sendResponse('creado correctamente', 201);
         } catch (Exception $error) {
             return $this->sendError($error, 405);
