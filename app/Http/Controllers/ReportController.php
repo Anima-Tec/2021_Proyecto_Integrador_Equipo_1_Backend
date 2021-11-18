@@ -51,7 +51,7 @@ class ReportController extends ApiController
 
     public function showAdmin($id)
     {
-        $Report = $this->getReports([['reports.id', $id], ['reports.active', 2]]);
+        $Report = $this->getReports([['reports.id', $id], ['reports.active', '!=', 0]]);
 
         if ($Report) {
             return $this->sendResponse($this->generateDateAgo($Report), 200);
