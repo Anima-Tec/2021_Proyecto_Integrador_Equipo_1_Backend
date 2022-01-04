@@ -7,9 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model
 {
-
-    protected $connection = 'integrative_project';
-    protected $table = 'report';
-    protected $primaryKey = "report_id";
-    public $timestamps = false;
+    use HasFactory;
+    protected $table = 'reports';
+    protected $fillable = [
+        'id',
+        'date',
+        'type_report',
+        'description',
+        'assessment',
+        'num_reports',
+        'active',
+        'id_place',
+        'photo'
+    ];
 }

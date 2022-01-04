@@ -2,69 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Place;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class PlaceController extends Controller
+class PlaceController extends ApiController
 {
-
-    public function index()
-    {
-        $Place = Place::all();
-        return $this->sendResponse($Place, "successfully");
-    }
-
-    public function store(Request $request)
+    public function show($address)
     {
         try {
-
-            $Place = new Place();
-            $Place->name = $request->input('name');
-            $Place->address = $request->input('address');
-            $Place->save();
-            return $this->sendResponse($Place, "successfully");
-        } catch (Exception $e) {
-            return $this->sendError("known error ", "error: $e", 200);
+            $Place = Place::where('address', $address)->select('id', 'address', 'name')->first();
+            if ($Place) {
+                $dataPlace = DB::select('select avg(assessment) as assessment, count(*) as quantity from reports where id_place = :id', ['id' => $Place->id]);
+                return $this->sendResponse(['place' => $Place, 'assessment' => $dataPlace[0]->assessment, 'quantity' => $dataPlace[0]->quantity], 200);
+            }
+        } catch (Exception $error) {
+            return $this->sendError($error, 405);
         }
     }
 
-    public function show($id)
+    public static function store(Request $request)
     {
-        try {
+        $Place = Place::where('address', $request->input('address_place'))->first();
 
-            $Place = Place::where('place_id', $id)
-                ->select('place_id', "name", "address")
-                ->get();
-            return $this->sendResponse($Place, "successfully");
-        } catch (Exception $e) {
-            return $this->sendError("known error", "error: $e", 200);
+        if (!$Place) {
+            $Place = Place::create([
+                'address' => $request->input('address_place'),
+                'name' =>  $request->input('name_place')
+            ]);
         }
-    }
 
-    public function update(Request $request)
-    {
-        try {
-
-            $Place = Place::find($request->place_id);
-            $Place->name = $request->input('name');
-            $Place->address = $request->input('address');
-            $Place->save();
-            return $this->sendResponse($Place, "successfully");
-        } catch (Exception $e) {
-            return $this->sendError("known error", " error: $e", 200);
-        }
-    }
-
-    public function destroy($id)
-    {
-        try {
-
-            $Place = Place::find($id)
-                ->delete();
-            return $this->sendResponse($Place, "successfully");
-        } catch (Exception $e) {
-            return $this->sendError("known error", "error: $e", 200);
-        }
+        return $Place->id;
     }
 }
